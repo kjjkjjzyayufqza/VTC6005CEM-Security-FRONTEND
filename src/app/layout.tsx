@@ -1,4 +1,3 @@
-'use client'
 import { ConfigProvider } from 'antd'
 import './globals.css'
 import { Inter } from 'next/font/google'
