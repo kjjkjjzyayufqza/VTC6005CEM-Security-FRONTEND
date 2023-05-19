@@ -1,4 +1,3 @@
-'use client'
 import { Image, Typography } from 'antd'
 import '../globals.css'
 import { Inter } from 'next/font/google'
