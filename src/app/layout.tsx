@@ -1,7 +1,5 @@
-import { ConfigProvider } from 'antd'
 import './globals.css'
 import { Inter } from 'next/font/google'
-import { StyleProvider } from '@ant-design/cssinjs'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
@@ -15,16 +13,8 @@ export default function RootLayout ({
   children: React.ReactNode
 }) {
   return (
-    <ConfigProvider
-      theme={{
-        token: {}
-      }}
-    >
-      <StyleProvider hashPriority='high'>
-        <html lang='en'>
-          <body className={inter.className}>{children}</body>
-        </html>
-      </StyleProvider>
-    </ConfigProvider>
+    <html lang='en'>
+      <body className={inter.className}>{children}</body>
+    </html>
   )
 }
