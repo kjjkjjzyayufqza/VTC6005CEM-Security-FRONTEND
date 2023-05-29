@@ -17,7 +17,9 @@ import {
   Form,
   message,
   Row,
+  Select,
   Space,
+  Tag,
   Typography
 } from 'antd'
 import { useEffect, useState } from 'react'
@@ -207,7 +209,7 @@ export default () => {
                       }
                     ]}
                   >
-                    <DatePicker
+                    {/* <DatePicker
                       className='w-full'
                       disabledDate={current => {
                         // 将 current 转换为 Date 类型，便于比较
@@ -220,6 +222,50 @@ export default () => {
                           )
                         })
                       }}
+                    /> */}
+                    <Select
+                      showSearch
+                      style={{ width: '100%' }}
+                      placeholder='Search to Select'
+                      // optionFilterProp='children'
+                      // filterOption={(input, option) =>
+                      //   (option?.label ?? '').includes(input)
+                      // }
+                      // filterSort={(optionA, optionB) =>
+                      //   (optionA?.label ?? '')
+                      //     .toLowerCase()
+                      //     .localeCompare((optionB?.label ?? '').toLowerCase())
+                      // }
+                      options={[
+                        {
+                          value: '1',
+                          label: (
+                            <div className='grid grid-cols-1 items-center justify-center'>
+                              <div className='text-center'>2023-05-29</div>
+                              <div className='text-center'>
+                                15:00:00 - 16:00:00
+                              </div>
+                              <div className='text-center'>
+                                <Tag color='#55acee'>hello</Tag>
+                              </div>
+                            </div>
+                          )
+                        },
+                        {
+                          value: '1',
+                          label: (
+                            <div className='grid grid-cols-1 items-center justify-center'>
+                              <div className='text-center'>2023-05-29</div>
+                              <div className='text-center'>
+                                15:00:00 - 16:00:00
+                              </div>
+                              <div className='text-center'>
+                                <Tag color='#55acee'>hello</Tag>
+                              </div>
+                            </div>
+                          )
+                        }
+                      ]}
                     />
                   </Form.Item>
 
