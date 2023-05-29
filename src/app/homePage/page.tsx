@@ -1,6 +1,6 @@
 'use client'
 import { StyleProvider } from '@ant-design/cssinjs'
-import { Button, ConfigProvider, Image } from 'antd'
+import { Button, ConfigProvider, Image, Segmented } from 'antd'
 import React from 'react'
 import { Divider, Typography } from 'antd'
 import { useRouter } from 'next/navigation'
@@ -44,8 +44,13 @@ function HomePage () {
               </Title>
             </div>
 
-            <div className='mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left'>
-              <button className='text-left group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30'>
+            <div className='mb-32 grid text-center lg:mb-0 lg:grid-cols-2 lg:text-left'>
+              <button
+                onClick={() => {
+                  router.push(`InputForm?type=Sinovac`)
+                }}
+                className='text-left group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30'
+              >
                 <h2 className={`mb-3 text-2xl font-semibold`}>
                   Booking for the 1<sup>st</sup> and 2<sup>nd</sup> doses
                   Sinovac{' '}
@@ -58,7 +63,12 @@ function HomePage () {
                 </p>
               </button>
 
-              <button className='text-left group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30'>
+              <button
+                onClick={() => {
+                  router.push(`InputForm?type=BioNtech`)
+                }}
+                className='text-left group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30'
+              >
                 <h2 className={`mb-3 text-2xl font-semibold`}>
                   Booking for the 1<sup>st</sup> and 2<sup>nd</sup> doses
                   BioNtech/Fosun [Comirnaty]{' '}
@@ -70,7 +80,7 @@ function HomePage () {
                   Aged 6 month-old or Above
                 </p>
               </button>
-
+              {/* 
               <button className='text-left group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30'>
                 <h2 className={`mb-3 text-2xl font-semibold`}>
                   Booking for Additional Dose 3<sup>rd</sup>/4<sup>th</sup>/5
@@ -82,9 +92,9 @@ function HomePage () {
                 <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
                   Must have received first and second vaccinations
                 </p>
-              </button>
+              </button> */}
 
-              <button
+              {/* <button
                 onClick={() => {
                   router.push('InputForm')
                 }}
@@ -99,11 +109,11 @@ function HomePage () {
                 <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
                   Perform various operations
                 </p>
-              </button>
+              </button> */}
             </div>
           </main>
           <footer className='flex justify-center items-center'>
-            Public / Employees
+            <Segmented options={['Public']} />
           </footer>
         </div>
       </StyleProvider>

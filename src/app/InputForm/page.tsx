@@ -10,19 +10,53 @@ import {
 import { StyleProvider } from '@ant-design/cssinjs'
 import {
   Breadcrumb,
+  Button,
   Col,
   ConfigProvider,
+  DatePicker,
+  Form,
   message,
   Row,
   Space,
   Typography
 } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Inter } from 'next/font/google'
-const { Title, Paragraph, Text, Link } = Typography
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
+import moment from 'moment'
+import dayjs from 'dayjs'
+import { createUserBooking, getAllBookingDate } from '@/api'
+import { GenderType, userBooking, vaccineBrand } from '@/model'
+import * as CryptoJS from 'crypto-js'
+const { Title, Paragraph, Text } = Typography
 const inter = Inter({ subsets: ['latin'] })
 
 export default () => {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const type: vaccineBrand = searchParams.get('type') as any
+  const [form] = Form.useForm()
+  const [allDate, setAllDate] = useState<string[]>([])
+  const [messageApi, contextHolder] = message.useMessage()
+  useEffect(() => {
+    if (!Object.values(vaccineBrand).includes(type)) {
+      router.push('/')
+    }
+
+    getAllBookingDate({ startTime: dayjs().toString() })
+      .then(res => {
+        const result = res.data.data.map(e => {
+          return e.startTime
+        })
+        setAllDate(result)
+      })
+      .catch(err => {
+        console.log(err)
+        messageApi.warning('Server Error')
+      })
+  }, [])
+
   return (
     <ConfigProvider
       theme={{
@@ -46,16 +80,39 @@ export default () => {
               </div>
             </div>
             <div className='w-full'>
+              <Link href='/'>
+                <Button className=''>Back</Button>
+              </Link>
+              <Button
+                onClick={() => {
+                  form.setFieldsValue({
+                    bookingDate: dayjs().add(1, 'day'),
+                    name_en: 'abc',
+                    name_zh: '好',
+                    gender: 'Male',
+                    dateOfBirth: dayjs(),
+                    identityDN: 'A1234567',
+                    mobile: '12345678',
+                    residenceAddress: 'string',
+                    birthAddress: 'string'
+                  })
+                }}
+              >
+                Test
+              </Button>
               <div className={'flex justify-center items-center'}>
                 <ProForm<{
+                  bookingDate: string
                   name_en: string
                   name_zh: string
                   gender: string
-                  dateOfBirth: Date
+                  dateOfBirth: string
                   identityDN: string
+                  mobile: string
                   residenceAddress: string
                   birthAddress: string
                 }>
+                  form={form}
                   submitter={{
                     searchConfig: {
                       resetText: 'Reset',
@@ -70,11 +127,102 @@ export default () => {
                     }
                   }}
                   onFinish={async values => {
-                    console.log(values)
-                    message.success('提交成功')
+                    const key_id: any = process.env.NEXT_PUBLIC_ID_SECRETKEY
+                    const identityDN_dataToEncrypt = values.identityDN
+                    const iv = CryptoJS.lib.WordArray.random(16) // 随机生成 16 个字节的 IV
+                    const identityDN_encrypted = CryptoJS.AES.encrypt(
+                      identityDN_dataToEncrypt,
+                      key_id,
+                      {
+                        iv: iv
+                      }
+                    )
+                    const identityDN_dataToEncrypt_encryptedString = `${iv.toString()}${identityDN_encrypted.toString()}`
+
+                    // console.log(identityDN_dataToEncrypt_encryptedString)
+
+                    // const iv_d = CryptoJS.enc.Hex.parse(
+                    //   identityDN_dataToEncrypt_encryptedString.substr(0, 32)
+                    // ) // 从字符串中提取前 32 个字符作为 IV
+                    // const ciphertext = identityDN_dataToEncrypt_encryptedString.substr(32)
+                    // const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
+                    //   iv: iv_d
+                    // })
+                    // const decryptedString = decrypted.toString(
+                    //   CryptoJS.enc.Utf8
+                    // )
+                    // console.log(decryptedString)
+
+                    const submitData: userBooking = {
+                      nameEn: values.name_en,
+                      nameCn: values.name_zh,
+                      gender: values.gender as GenderType,
+                      identityDN: identityDN_dataToEncrypt_encryptedString,
+                      mobile: values.mobile,
+                      birthDate: moment(values.bookingDate).toString(),
+                      address: values.residenceAddress,
+                      birthplace: values.birthAddress,
+                      vaccineBrand: vaccineBrand[type],
+                      bookDate: {
+                        id: allDate
+                          .filter(
+                            word =>
+                              moment(word).format('YYYY-MM-DD') ==
+                              moment(values.bookingDate).format('YYYY-MM-DD')
+                          )
+                          .toString()
+                      }
+                    }
+
+                    const key: any = process.env.NEXT_PUBLIC_SECRETKEY
+                    const iv_data = CryptoJS.lib.WordArray.random(16) // 随机生成 16 个字节的 IV
+                    const encrypted_data = CryptoJS.AES.encrypt(
+                      JSON.stringify(submitData),
+                      key,
+                      {
+                        iv: iv_data
+                      }
+                    )
+                    const encryptedString_data = `${iv_data.toString()}${encrypted_data.toString()}`
+
+                    createUserBooking(encryptedString_data)
+                      .then(res => {
+                        // console.log(res.data)
+                        messageApi.success('Success')
+                      })
+                      .catch(err => {
+                        console.log(err)
+                        messageApi.warning(err)
+                      })
                   }}
                   params={{}}
                 >
+                  <Form.Item
+                    name='bookingDate'
+                    label='Booking Date'
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Please Select the Date'
+                      }
+                    ]}
+                  >
+                    <DatePicker
+                      className='w-full'
+                      disabledDate={current => {
+                        // 将 current 转换为 Date 类型，便于比较
+                        const date = new Date(current.valueOf())
+                        // 禁用在 disabledDates 数组中的所有日期
+                        return !allDate.some(disabledDate => {
+                          return (
+                            date.toDateString() ===
+                            new Date(disabledDate).toDateString()
+                          )
+                        })
+                      }}
+                    />
+                  </Form.Item>
+
                   <ProFormText
                     width='md'
                     name='name_en'
@@ -139,6 +287,29 @@ export default () => {
                       },
                       {
                         pattern: /[a-zA-Z]{1}[0-9]{7}/,
+                        message:
+                          'Please enter a valid Identity document number!'
+                      },
+                      {
+                        max: 8,
+                        message:
+                          'Please enter a valid Identity document number!'
+                      }
+                    ]}
+                  />
+
+                  <ProFormText
+                    width='md'
+                    name='mobile'
+                    label='Mobile'
+                    placeholder='12345678'
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Please enter your Identity document number!'
+                      },
+                      {
+                        pattern: /[0-9]{8}/,
                         message:
                           'Please enter a valid Identity document number!'
                       },
