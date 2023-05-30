@@ -38,7 +38,7 @@ import {
   vaccineBrand
 } from '@/model'
 import * as CryptoJS from 'crypto-js'
-import { CreateAccount, getAllBookingDate } from '@/api/staff'
+import { CreateAccount } from '@/api/staff'
 const { Title, Paragraph, Text } = Typography
 const inter = Inter({ subsets: ['latin'] })
 

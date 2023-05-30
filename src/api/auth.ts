@@ -9,7 +9,8 @@ import {
 import axios, { AxiosResponse } from 'axios'
 import jwt_decode from 'jwt-decode'
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL:
+    process.env.NODE_ENV == 'development' ? 'http://localhost:3000/' : 'https://vtc6005cem-security-backend.azurewebsites.net/',
   timeout: 10000
 })
 
@@ -105,4 +106,3 @@ export function SignIn (
 ): Promise<customRes<SignInResponseModel>> {
   return instance.post('auth/SignIn', args)
 }
-
