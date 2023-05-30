@@ -11,7 +11,7 @@ import axios, { AxiosResponse } from 'axios'
 import { getToken, refreshToken } from './auth'
 
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL: process.env.NODE_ENV == 'development' ? 'http://localhost:3000/' : 'https://vtc6005cem-security-backend.azurewebsites.net/',
   timeout: 10000
 })
 
