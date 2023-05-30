@@ -29,7 +29,13 @@ import Link from 'next/link'
 import moment from 'moment'
 import dayjs from 'dayjs'
 import { createUserBooking, getAllBookingDate } from '@/api'
-import { GenderType, userBooking, vaccineBrand } from '@/model'
+import {
+  CreateUserBooking,
+  GenderType,
+  bookingDataModel,
+  userBooking,
+  vaccineBrand
+} from '@/model'
 import * as CryptoJS from 'crypto-js'
 const { Title, Paragraph, Text } = Typography
 const inter = Inter({ subsets: ['latin'] })
@@ -39,7 +45,7 @@ export default () => {
   const router = useRouter()
   const type: vaccineBrand = searchParams.get('type') as any
   const [form] = Form.useForm()
-  const [allDate, setAllDate] = useState<string[]>([])
+  const [allDate, setAllDate] = useState<bookingDataModel[]>([])
   const [messageApi, contextHolder] = message.useMessage()
   useEffect(() => {
     if (!Object.values(vaccineBrand).includes(type)) {
@@ -48,10 +54,7 @@ export default () => {
 
     getAllBookingDate({ startTime: dayjs().toString() })
       .then(res => {
-        const result = res.data.data.map(e => {
-          return e.startTime
-        })
-        setAllDate(result)
+        setAllDate(res.data)
       })
       .catch(err => {
         console.log(err)
@@ -68,7 +71,7 @@ export default () => {
       <StyleProvider hashPriority='high'>
         <div className={inter.className}>
           <div className='flex min-h-screen flex-col items-center justify-between p-24'>
-            <div className='z-10 w-full max-w-5xl items-center justify-between lg:flex'>
+            <div className='z-10 w-full max-w-5xl items-center justify-between lg:flex mb-5'>
               <h2 className={`mb-3 text-2xl font-semibold`}>
                 COVID-19 Vaccination Programme - Booking System
               </h2>
@@ -81,14 +84,14 @@ export default () => {
                 </a>
               </div>
             </div>
-            <div className='w-full'>
+            <div className='w-full bg-white p-4 shadow-md rounded-md'>
               <Link href='/'>
                 <Button className=''>Back</Button>
               </Link>
-              <Button
+              {/* <Button
                 onClick={() => {
                   form.setFieldsValue({
-                    bookingDate: dayjs().add(1, 'day'),
+                    bookingDate: '6474e9831579d1cfcbc5d601',
                     name_en: 'abc',
                     name_zh: '好',
                     gender: 'Male',
@@ -101,7 +104,7 @@ export default () => {
                 }}
               >
                 Test
-              </Button>
+              </Button> */}
               <div className={'flex justify-center items-center'}>
                 <ProForm<{
                   bookingDate: string
@@ -155,24 +158,18 @@ export default () => {
                     // )
                     // console.log(decryptedString)
 
-                    const submitData: userBooking = {
+                    const submitData: CreateUserBooking = {
                       nameEn: values.name_en,
                       nameCn: values.name_zh,
                       gender: values.gender as GenderType,
                       identityDN: identityDN_dataToEncrypt_encryptedString,
                       mobile: values.mobile,
-                      birthDate: moment(values.bookingDate).toString(),
+                      birthDate: moment(values.dateOfBirth).toString(),
                       address: values.residenceAddress,
                       birthplace: values.birthAddress,
                       vaccineBrand: vaccineBrand[type],
                       bookDate: {
-                        id: allDate
-                          .filter(
-                            word =>
-                              moment(word).format('YYYY-MM-DD') ==
-                              moment(values.bookingDate).format('YYYY-MM-DD')
-                          )
-                          .toString()
+                        id: values.bookingDate
                       }
                     }
 
@@ -186,7 +183,6 @@ export default () => {
                       }
                     )
                     const encryptedString_data = `${iv_data.toString()}${encrypted_data.toString()}`
-
                     createUserBooking(encryptedString_data)
                       .then(res => {
                         // console.log(res.data)
@@ -194,7 +190,7 @@ export default () => {
                       })
                       .catch(err => {
                         console.log(err)
-                        messageApi.warning(err)
+                        messageApi.warning('Fail')
                       })
                   }}
                   params={{}}
@@ -236,36 +232,18 @@ export default () => {
                       //     .toLowerCase()
                       //     .localeCompare((optionB?.label ?? '').toLowerCase())
                       // }
-                      options={[
-                        {
-                          value: '1',
-                          label: (
-                            <div className='grid grid-cols-1 items-center justify-center'>
-                              <div className='text-center'>2023-05-29</div>
-                              <div className='text-center'>
-                                15:00:00 - 16:00:00
-                              </div>
-                              <div className='text-center'>
-                                <Tag color='#55acee'>hello</Tag>
-                              </div>
-                            </div>
-                          )
-                        },
-                        {
-                          value: '1',
-                          label: (
-                            <div className='grid grid-cols-1 items-center justify-center'>
-                              <div className='text-center'>2023-05-29</div>
-                              <div className='text-center'>
-                                15:00:00 - 16:00:00
-                              </div>
-                              <div className='text-center'>
-                                <Tag color='#55acee'>hello</Tag>
-                              </div>
-                            </div>
-                          )
+                      options={allDate.map(e => {
+                        return {
+                          value: e._id,
+                          label: `${moment(e.startTime).format(
+                            'YYYY-MM-DD'
+                          )} | ${moment(e.startTime).format(
+                            'HH:mm:ss'
+                          )} - ${moment(e.endTime).format('HH:mm:ss')} | ${
+                            e.venues
+                          }`
                         }
-                      ]}
+                      })}
                     />
                   </Form.Item>
 
@@ -395,6 +373,7 @@ export default () => {
             </div>
           </div>
         </div>
+        {contextHolder}
       </StyleProvider>
     </ConfigProvider>
   )

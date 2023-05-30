@@ -1,4 +1,5 @@
 import {
+  CreateUserModel,
   SignInModel,
   SignInResponseModel,
   UserModel,
@@ -7,6 +8,8 @@ import {
   userBooking
 } from '@/model'
 import axios, { AxiosResponse } from 'axios'
+import { getToken, refreshToken } from './auth'
+
 const instance = axios.create({
   baseURL: 'http://localhost:3000/',
   timeout: 10000
@@ -14,8 +17,9 @@ const instance = axios.create({
 
 // 添加请求拦截器
 instance.interceptors.request.use(
-  async (config: any) => {
+  async config => {
     // 在发送请求之前做些什么
+    config.headers.Authorization = (await getToken()) as any
     return config
   },
   function (error) {
@@ -31,6 +35,12 @@ instance.interceptors.response.use(
     return response.data
   },
   async error => {
+    if (error.response.status === 401) {
+      if (await refreshToken()) {
+      } else {
+        localStorage.clear()
+      }
+    }
     return Promise.reject(error)
   }
 )
@@ -39,9 +49,20 @@ export function createUserBooking (data: any) {
   return instance.post('userBooking', { encryptedData: data })
 }
 
-export function getAllBookingDate (args: {
-  startTime?: string
-  venues?: string
-}): Promise<customRes<bookingDataModel[]>> {
-  return instance.get('bookingDate', { params: args })
+export function getAllUserBooking (args: {
+  mobile?: string
+}): Promise<customRes<userBooking[]>> {
+  return instance.get('userBooking', { params: args })
+}
+
+export function getCurrentUser (): Promise<customRes<UserModel>> {
+  return instance.get('users')
+}
+
+export function Logout (): Promise<customRes<any>> {
+  return instance.get('auth/logout')
+}
+
+export function CreateAccount (args : CreateUserModel): Promise<customRes<any>> {
+  return instance.post('auth/SignUp',args)
 }
